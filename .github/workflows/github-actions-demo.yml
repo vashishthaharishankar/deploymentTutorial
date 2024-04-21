@@ -14,7 +14,7 @@ jobs:
     - name: AWS Lambda python deploy
       uses: denzalman/lambda-python-action@v1.2.1
       with:
-        lambda_layer_arn: 'arn:aws:lambda:ap-south-1:336392948345:layer:AWSSDKPandas-Python311:11'
+        lambda_layer_arn: 'arn:aws:lambda:ap-south-1:554480029851:layer:AWS-AppConfig-Extension:121'
         lambda_function_name: 'testCode'
         lambda_region: 'ap-south-1'
         requirements_txt: 'requirements.txt'
