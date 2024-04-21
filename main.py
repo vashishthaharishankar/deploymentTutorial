@@ -10,6 +10,7 @@ def data_sample():
 
     # Create DataFrame from dictionary
     df = pd.DataFrame(data)
+    print('Executed 2')
 
     # Print the DataFrame
     return df

@@ -13,8 +13,8 @@ jobs:
     - name: Deploy code to Lambda
       uses: denzalman/lambda-python-action@v2.0.0
       with:
-        lambda_layer_arn: 'arn:aws:lambda:ap-south-1:654654396523:function:testPython'
-        lambda_function_name: 'testPython'
+        lambda_layer_arn: 'arn:aws:lambda:ap-south-1:654654396523:function:testCode'
+        lambda_function_name: 'testCode'
         lambda_region: 'ap-south-1'
         requirements_txt: 'requirements.txt'
       env:
