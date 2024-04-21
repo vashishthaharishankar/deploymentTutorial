@@ -3,7 +3,7 @@ name: Deploy lambda
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   deploy:
@@ -13,9 +13,9 @@ jobs:
     - name: Deploy code to Lambda
       uses: denzalman/lambda-python-action@v2.0.0
       with:
-        lambda_layer_arn: 'arn:aws:lambda:us-east-1:<AWS_ACCOUNT_ID>:layer:<lambda_layer_name>'
-        lambda_function_name: 'lambda_function_name'
-        lambda_region: 'us-east-1'
+        lambda_layer_arn: 'arn:aws:lambda:ap-south-1:654654396523:function:testPython'
+        lambda_function_name: 'testPython'
+        lambda_region: 'ap-south-1'
         requirements_txt: 'requirements.txt'
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
