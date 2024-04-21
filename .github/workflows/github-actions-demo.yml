@@ -9,9 +9,10 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+
     - uses: actions/checkout@master
-    - name: Deploy code to Lambda
-      uses: denzalman/lambda-python-action@v2.0.0
+    - name: AWS Lambda python deploy
+      uses: denzalman/lambda-python-action@v1.2.1
       with:
         lambda_layer_arn: 'arn:aws:lambda:ap-south-1:654654396523:function:testCode'
         lambda_function_name: 'testCode'
