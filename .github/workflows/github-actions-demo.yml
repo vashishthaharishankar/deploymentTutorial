@@ -28,7 +28,7 @@ jobs:
         zip -r ../dependencies.zip .
       working-directory: ${{ github.workspace }}
 
-    - name: Create Lambda Layer
+    - name: Publish Lambda Layer
       run: |
         aws lambda publish-layer-version \
           --layer-name AWSSDKPandas-Python311 \
