@@ -11,18 +11,31 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-south-1
+      - name: Get the existing image tag
+        id: get-image-tag
+        run: |
+          IMAGE_TAG=$(aws ecr describe-images --repository-name deploymenttutorial --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[0]' --output text)
+          echo "::set-output name=IMAGE_TAG::$IMAGE_TAG"
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build, tag, and push docker image to Amazon ECR
+      - name: Build and tag docker image
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           REPOSITORY: deploymenttutorial
-          IMAGE_TAG: deploymenttutorialimagetag
+          IMAGE_TAG: ${{ steps.get-image-tag.outputs.IMAGE_TAG }}
         run: |
-          docker build -t $REGISTRY/$REPOSITORY:deploymenttutorialimagetag .
-          docker push $REGISTRY/$REPOSITORY:deploymenttutorialimagetag
+          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
+          docker tag $REGISTRY/$REPOSITORY:$IMAGE_TAG $REGISTRY/$REPOSITORY:$IMAGE_TAG
+
+      - name: Push docker image to Amazon ECR
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: deploymenttutorial
+          IMAGE_TAG: ${{ steps.get-image-tag.outputs.IMAGE_TAG }}
+        run: |
+          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
           aws lambda update-function-code \
             --function-name deploymentTutorial \
-            --image-uri $REGISTRY/$REPOSITORY:deploymenttutorialimagetag
+            --image-uri $REGISTRY/$REPOSITORY:$IMAGE_TAG
