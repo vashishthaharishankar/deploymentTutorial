@@ -25,7 +25,8 @@ jobs:
     - name: Zip dependencies
       run: |
         cd dependencies
-        zip -r dependencies.zip .
+        zip -r ../dependencies.zip .
+      working-directory: ${{ github.workspace }}
 
     - name: Create Lambda Layer
       run: |
