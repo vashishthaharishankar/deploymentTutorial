@@ -16,5 +16,5 @@ def lambda_handler(event, context):
 
     return {
         'statusCode': 200,
-        'body': df.shape
+        'body': {'message' : "Hello Mr. Docker"}
     }
