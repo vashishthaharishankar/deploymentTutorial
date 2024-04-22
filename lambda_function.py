@@ -1,11 +1,20 @@
 import json
-from main import data_sample
+import pandas as pd
 
 
 def lambda_handler(event, context):
-    # TODO implement
-    print("Executed 1")
+
+    data = {
+        'Name': ['Alice', 'Bob', 'Charlie', 'David'],
+        'Age': [25, 30, 35, 40],
+        'City': ['New York', 'Los Angeles', 'Chicago', 'Houston']
+    }
+
+    # Create DataFrame from dictionary
+    df = pd.DataFrame(data)
+
+
     return {
         'statusCode': 200,
-        'body': json.dumps(data_sample())
+        'body': df
     }
