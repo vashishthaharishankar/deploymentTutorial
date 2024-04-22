@@ -1,23 +1,25 @@
-name: Deploy lambda
-
-on:
-  push:
-    branches:
-      - main
-
+name: lambda_zip_test
+on: [push]
 jobs:
-  deploy:
+  lambda_demo:
     runs-on: ubuntu-latest
     steps:
-
-    - uses: actions/checkout@master
-    - name: AWS Lambda python deploy
-      uses: denzalman/lambda-python-action@v1.2.1
-      with:
-        lambda_layer_arn: 'arn:aws:lambda:ap-south-1:654654396523:layer:AWSSDKPandas-Python311'
-        lambda_function_name: 'testCode'
-        lambda_region: 'ap-south-1'
-        requirements_txt: 'requirements.txt'
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - uses: actions/checkout@v4
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            aws-region: ap-south-1
+      -   name: Creating deployment zip
+          run: |
+           sudo apt install zip
+           mkdir -p ./deployment_zip
+           pip install snowflake-connector-python --platform manylinux2010_x86_64 --only-binary=:all: -t ./deployment_zip
+           cp ./lambda_function.py  ./deployment_zip
+           cd deployment_zip
+           zip -r lambda_zip.zip *
+      -   name: lambda_code_update
+          run: |
+           aws lambda update-function-code --function-name lambda_deployment_via_gitaction --zip-file fileb://./deployment_zip/lambda_zip.zip
+           
