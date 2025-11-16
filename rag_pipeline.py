@@ -285,48 +285,48 @@ def main_execution_flow(
     return get_final_agent_response(agent, query)
 
 
-if __name__ == "__main__":
-    URLS_TO_LOAD = [
-        "https://www.primeloans.kotak.com/chargesFees.htm",
-        "https://www.primeloans.kotak.com/grievanceRedressal.htm",
-        "https://www.primeloans.kotak.com/investorsDebt.htm",
-        "https://www.primeloans.kotak.com/annualReport.htm",
-        "https://www.primeloans.kotak.com/policies.htm",
-        "https://www.primeloans.kotak.com/media.htm",
-        "https://www.primeloans.kotak.com/newCarFinance.htm",
-        "https://www.primeloans.kotak.com/usedCarFinance.htm",
-        "https://www.primeloans.kotak.com/topUpCarLoan.htm",
-        "https://www.primeloans.kotak.com/twoWheeler.htm",
-        "https://www.primeloans.kotak.com/carLease.htm",
-        "https://www.primeloans.kotak.com/dealerFinance.htm",
-        "https://www.primeloans.kotak.com/loanAgainstProperty.htm",
-        "https://www.primeloans.kotak.com/carNews.htm",
-        "https://www.primeloans.kotak.com/latestCar.htm",
-        "https://www.primeloans.kotak.com/upcomingCar.htm",
-        "https://www.primeloans.kotak.com/carPrice.htm",
-        "https://www.primeloans.kotak.com/compareCars.htm",
-        "https://www.primeloans.kotak.com/bikeNews.htm",
-        "https://www.primeloans.kotak.com/latestBike.htm",
-        "https://www.primeloans.kotak.com/upcomingBike.htm",
-        "https://www.primeloans.kotak.com/bikePrice.htm",
-        "https://www.primeloans.kotak.com/compareBikes.htm",
-        "https://www.primeloans.kotak.com/applyNow.htm",
-        "https://www.primeloans.kotak.com/offer.htm",
-        "https://www.primeloans.kotak.com/formDownload.htm",
-        "https://www.primeloans.kotak.com/document.htm",
-        "https://www.primeloans.kotak.com/lifeInsurance.htm",
-        "https://www.primeloans.kotak.com/motorInsurance.htm",
-        "https://www.primeloans.kotak.com/aboutUs.htm",
-        "https://www.primeloans.kotak.com/",
-    ]
-    # List of URLs to process
-    # URLS_TO_LOAD = [
-    #     "https://www.primeloans.kotak.com/chargesFees.htm",
-    #     "https://www.primeloans.kotak.com/newCarFinance.htm",
-    # ]
+# if __name__ == "__main__":
+#     URLS_TO_LOAD = [
+#         "https://www.primeloans.kotak.com/chargesFees.htm",
+#         "https://www.primeloans.kotak.com/grievanceRedressal.htm",
+#         "https://www.primeloans.kotak.com/investorsDebt.htm",
+#         "https://www.primeloans.kotak.com/annualReport.htm",
+#         "https://www.primeloans.kotak.com/policies.htm",
+#         "https://www.primeloans.kotak.com/media.htm",
+#         "https://www.primeloans.kotak.com/newCarFinance.htm",
+#         "https://www.primeloans.kotak.com/usedCarFinance.htm",
+#         "https://www.primeloans.kotak.com/topUpCarLoan.htm",
+#         "https://www.primeloans.kotak.com/twoWheeler.htm",
+#         "https://www.primeloans.kotak.com/carLease.htm",
+#         "https://www.primeloans.kotak.com/dealerFinance.htm",
+#         "https://www.primeloans.kotak.com/loanAgainstProperty.htm",
+#         "https://www.primeloans.kotak.com/carNews.htm",
+#         "https://www.primeloans.kotak.com/latestCar.htm",
+#         "https://www.primeloans.kotak.com/upcomingCar.htm",
+#         "https://www.primeloans.kotak.com/carPrice.htm",
+#         "https://www.primeloans.kotak.com/compareCars.htm",
+#         "https://www.primeloans.kotak.com/bikeNews.htm",
+#         "https://www.primeloans.kotak.com/latestBike.htm",
+#         "https://www.primeloans.kotak.com/upcomingBike.htm",
+#         "https://www.primeloans.kotak.com/bikePrice.htm",
+#         "https://www.primeloans.kotak.com/compareBikes.htm",
+#         "https://www.primeloans.kotak.com/applyNow.htm",
+#         "https://www.primeloans.kotak.com/offer.htm",
+#         "https://www.primeloans.kotak.com/formDownload.htm",
+#         "https://www.primeloans.kotak.com/document.htm",
+#         "https://www.primeloans.kotak.com/lifeInsurance.htm",
+#         "https://www.primeloans.kotak.com/motorInsurance.htm",
+#         "https://www.primeloans.kotak.com/aboutUs.htm",
+#         "https://www.primeloans.kotak.com/",
+#     ]
+#     # List of URLs to process
+#     # URLS_TO_LOAD = [
+#     #     "https://www.primeloans.kotak.com/chargesFees.htm",
+#     #     "https://www.primeloans.kotak.com/newCarFinance.htm",
+#     # ]
 
-    # Set force_rebuild_db=True to reload and chunk data from URLs
-    query = "What is the Clearing Mandate swap Charges?"
-    # query = "What is this Clearing Mandate swap Charges from charge & fees?"
-    final_output = main_execution_flow(query, urls=URLS_TO_LOAD, force_rebuild_db=False)
-    print(final_output)
+#     # Set force_rebuild_db=True to reload and chunk data from URLs
+#     query = "What is the Clearing Mandate swap Charges?"
+#     # query = "What is this Clearing Mandate swap Charges from charge & fees?"
+#     final_output = main_execution_flow(query, urls=URLS_TO_LOAD, force_rebuild_db=False)
+#     print(final_output)
