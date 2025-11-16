@@ -1,2 +1,10 @@
-pandas
-openpyxl
+pydantic
+langchain-core
+langchain
+langchain-community
+langchain-openai
+python-dotenv
+requests
+beautifulsoup4
+faiss-cpu
+simple_salesforce
