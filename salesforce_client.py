@@ -76,20 +76,20 @@ def create_salesforce_lead(user) -> dict:
         raise RuntimeError(f"Unexpected error: {str(e)}") from e
 
 
-if __name__ == "__main__":
-    # data = UserLoginData(
-    #     first_name="John",
-    #     last_name="Doe",
-    #     email="john2@example.com",
-    #     provider="google"
-    # )
+# if __name__ == "__main__":
+#     # data = UserLoginData(
+#     #     first_name="John",
+#     #     last_name="Doe",
+#     #     email="john2@example.com",
+#     #     provider="google"
+#     # )
 
-    data = {
-        "first_name": "Hari",
-        "last_name":"Doe",
-        "email":"john3@example.com",
-        "provider":"google"
+#     data = {
+#         "first_name": "Hari",
+#         "last_name":"Doe",
+#         "email":"john3@example.com",
+#         "provider":"google"
 
-    }
-    result = create_salesforce_lead(data)
-    print(result)
+#     }
+#     result = create_salesforce_lead(data)
+#     print(result)

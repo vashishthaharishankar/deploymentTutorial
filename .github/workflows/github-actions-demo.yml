@@ -1,5 +1,8 @@
 name: ecr_docker_deployment
-on: [push]
+on:
+  push:
+    branches:
+      - main  # This is the change
 jobs:
   docker_cicd:
     runs-on: ubuntu-latest
