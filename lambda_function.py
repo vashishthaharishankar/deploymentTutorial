@@ -16,9 +16,9 @@ from database.update_users_chats import add_user_chat
 load_dotenv()
 
 # Initialize S3 client
-AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
-AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
-AWS_DEFAULT_REGION = os.getenv("AWS_DEFAULT_REGION", "ap-south-1")
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID_1")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY_1")
+AWS_DEFAULT_REGION = os.getenv("AWS_DEFAULT_REGION_1", "ap-south-1")
 S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME", "hiara-dev")
 
 try:
