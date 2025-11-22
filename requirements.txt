@@ -8,3 +8,5 @@ requests
 beautifulsoup4
 faiss-cpu
 simple_salesforce
+boto3
+psycopg2-binary
