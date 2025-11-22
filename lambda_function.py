@@ -37,20 +37,20 @@ except Exception as e:
 
 
 class UserLoginData(BaseModel):
-    first_name: str
+    first_name: str | None
     last_name: str | None = None  # Optional
-    email: str
-    provider: str  # "google" or "microsoft"
+    email: str | None
+    provider: str | None  # "google" or "microsoft"
 
 
 class QueryChatModel(BaseModel):
-    first_name: str
+    first_name: str | None
     last_name: str | None = None
-    email: str
-    provider: str
-    user_query: str
-    thread_id: str
-    query_id: str
+    email: str | None
+    provider: str | None
+    user_query: str | None
+    thread_id: str | None
+    query_id: str | None
 
 
 # Helper function to parse multipart/form-data
