@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kotak Mahindra Bot</title>
+
+    <script src="https://www.gstatic.com/firebasejs/ui/6.0.1/firebase-ui-auth.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/6.0.1/firebase-ui-auth.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/prismjs/prism.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/prismjs/themes/prism-tomorrow.css" rel="stylesheet" />
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+        integrity="sha384-n8MVd4RsNIU0KOv5KOFhDqrEMrEIIcIeCyrMqiS9PFeGjzaA1zYWAjBvAFaYd-nF" crossorigin="anonymous">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
+        integrity="sha384-XjKyqHdwFkMhscVgcZkLzMJAWzTVBjUf9AocLASadA=" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        integrity="sha384-+VBf3ogBKWVOzTpaKBLA+sOZlT5gC8eAysJMgxKuhlTbD+TwGktMIdSMFlIzrLlb"
+        crossorigin="anonymous"></script>
+    <style>
+        /* --- Global & Reset --- */
+        :root {
+            --app-gradient: linear-gradient(135deg, #d2d2d2 0%, #EF2028 50%, #003975 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f0f2f5;
+            min-height: 100vh;
+        }
+
+        /* --- Login Screen Styles --- */
+        #login-screen {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            background: var(--app-gradient);
+        }
+
+        .login-container {
+            background: white;
+            padding: 20px 40px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .logo-container {
+            margin-bottom: 24px;
+        }
+
+        .logo {
+            max-width: 320px;
+            height: auto;
+        }
+
+        .login-container h1 {
+            color: #333;
+            margin-bottom: 12px;
+            font-size: 28px;
+        }
+
+        .login-container .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        /* --- NEW: Guest Input Styles --- */
+        .guest-input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 12px;
+            font-size: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fcfcfc;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .guest-input:focus {
+            border-color: #003975;
+            background-color: #fff;
+        }
+
+        .or-separator {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: #888;
+            margin: 20px 0;
+        }
+        
+        .or-separator span {
+            padding: 0 10px;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        
+        .or-separator::before,
+        .or-separator::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* --- Button Styles --- */
+        .btn {
+            width: 100%;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            margin-bottom: 16px;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .btn-guest-submit {
+            background-color: #003975; /* Kotak Blue */
+            color: white;
+            font-weight: 600;
+        }
+        
+        .btn-guest-submit:hover {
+            background-color: #002a57;
+        }
+
+        .btn-google {
+            background: white;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .btn-google:hover {
+            background: #f8f9fa;
+        }
+
+        .btn-microsoft {
+            background: #2f2f2f;
+            color: white;
+        }
+
+        .btn-disabled {
+            background: #a0a0a0;
+            opacity: 0.6;
+            cursor: not-allowed;
+            pointer-events: none;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .btn-wrapper {
+            position: relative;
+        }
+
+        .tooltip-text {
+            visibility: hidden;
+            width: 220px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px 12px;
+            position: absolute;
+            z-index: 1;
+            bottom: 110%;
+            left: 50%;
+            margin-left: -110px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+            pointer-events: none;
+        }
+
+        .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+        }
+
+        .btn-wrapper:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .error {
+            display: none;
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        /* --- Chatbot Screen Styles (Unchanged) --- */
+        #chatbot-screen {
+            display: none;
+            flex-direction: column;
+            height: 100vh;
+            width: 100%;
+            background-color: #f0f2f5;
+        }
+
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 20px;
+            background: var(--app-gradient);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-logo {
+            height: 35px;
+            width: auto;
+        }
+
+        .chat-header h2 {
+            color: white;
+            font-weight: 600;
+        }
+
+        #logout-button {
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            color: white;
+            background-color: transparent;
+            border: 2px solid white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        #logout-button:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        #chat-history {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(135deg, #e8eef5 0%, #f5f7fa 50%, #ffffff 100%);
+        }
+
+        .message {
+            padding: 12px 16px;
+            border-radius: 18px;
+            margin-bottom: 12px;
+            max-width: 70%;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        .message.user {
+            background-color: #007bff;
+            color: white;
+            align-self: flex-end;
+            margin-left: auto;
+        }
+
+        .message.bot {
+            background-color: #ffffff;
+            color: #333;
+            align-self: flex-start;
+            max-width: 85%;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .message.bot.loading {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .loading-dots {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .loading-dots>div {
+            width: 10px;
+            height: 10px;
+            background-color: #666;
+            border-radius: 50%;
+            animation: pulse 1.4s infinite ease-in-out both;
+        }
+
+        .loading-dots>div:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .loading-dots>div:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            80%,
+            100% {
+                transform: scale(0.6);
+                opacity: 0.5;
+            }
+
+            40% {
+                transform: scale(1.0);
+                opacity: 1;
+            }
+        }
+
+        /* --- IMPROVED Markdown Render Styles (Unchanged) --- */
+
+        .message.bot h1,
+        .message.bot h2,
+        .message.bot h3 {
+            margin: 12px 0 8px 0;
+            font-weight: 600;
+        }
+
+        .message.bot h1 {
+            font-size: 1.5em;
+        }
+
+        .message.bot h2 {
+            font-size: 1.3em;
+        }
+
+        .message.bot h3 {
+            font-size: 1.1em;
+        }
+
+        .message.bot p {
+            margin: 8px 0;
+        }
+
+        .message.bot table {
+            border-collapse: collapse;
+            margin: 12px 0;
+            width: 100%;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .message.bot th,
+        .message.bot td {
+            border: 1px solid #ddd;
+            padding: 10px 14px;
+            text-align: left;
+        }
+
+        .message.bot th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .message.bot tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .message.bot a {
+            color: #007bff;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        .message.bot a:hover {
+            color: #0056b3;
+        }
+
+        .message.bot ul,
+        .message.bot ol {
+            margin: 10px 0;
+            padding-left: 24px;
+        }
+
+        .message.bot li {
+            margin-bottom: 6px;
+            line-height: 1.6;
+        }
+
+        .message.bot strong {
+            font-weight: 600;
+        }
+
+        .message.bot em {
+            font-style: italic;
+        }
+
+        .message.bot blockquote {
+            border-left: 4px solid #ddd;
+            padding-left: 16px;
+            margin: 10px 0;
+            color: #666;
+            font-style: italic;
+        }
+
+        /* --- Styles for Prism.js Code Blocks (Unchanged) --- */
+        .message.bot p code,
+        .message.bot li code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9em;
+            color: #c7254e;
+        }
+
+        .message.bot pre[class*="language-"] {
+            background: #2d2d2d;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 10px 0;
+            overflow-x: auto;
+            font-size: 0.9em;
+        }
+
+        .message.bot pre[class*="language-"] code {
+            color: #ccc;
+            background: none;
+            padding: 0;
+            font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+            font-size: 1em;
+        }
+
+        /* --- Styles for KaTeX Math Rendering (Unchanged) --- */
+        .message.bot .katex-display {
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 4px 0;
+        }
+
+        /* --- Chat Form Styles (Unchanged) --- */
+        #chat-form {
+            display: flex;
+            align-items: center;
+            padding: 6px;
+            background: var(--app-gradient);
+            border-top: 1px solid #ddd;
+        }
+
+        #file-upload-btn {
+            background: white;
+            color: #007bff;
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            margin-right: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+            flex-shrink: 0;
+        }
+
+        #file-upload-btn:hover {
+            background: #f0f0f0;
+        }
+
+        #user-query {
+            flex-grow: 1;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            padding: 10px 18px;
+            font-size: 16px;
+            outline: none;
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+        }
+
+        #user-query:focus {
+            border-color: #fff;
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+        }
+
+        #chat-form button {
+            background: white;
+            color: #007bff;
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            margin-left: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+            flex-shrink: 0;
+        }
+
+        #chat-form button:hover {
+            background: #f0f0f0;
+        }
+
+        #chat-form button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* --- Side Preview Panel (Unchanged) --- */
+        #preview-panel {
+            position: fixed;
+            top: 0;
+            right: -60%;
+            width: 60%;
+            height: 100vh;
+            background: white;
+            box-shadow: -10px 0 20px rgba(0, 0, 0, 0.2);
+            transition: right 0.4s ease-in-out;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #preview-panel.open {
+            right: 0;
+        }
+
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: #f1f1f1;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .preview-header span {
+            font-weight: 500;
+            font-size: 14px;
+            color: #555;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #preview-close-btn {
+            padding: 5px 10px;
+            background: #e0e0e0;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #preview-iframe {
+            flex-grow: 1;
+            border: none;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="login-screen">
+        <div class="login-container">
+            <div class="logo-container">
+                <img src="https://www.primeloans.kotak.com/corporate/images/logo.png" alt="Company Logo" class="logo"
+                    style="height: auto !important; width: 280px !important; max-width: none !important;">
+            </div>
+
+            <h1>Sign in to Kotak Prime</h1>
+            <p class="subtitle">Welcome to your Kotak Prime portal</p>
+
+            <div id="guest-login-wrapper" style="margin-bottom: 10px;">
+                <input type="text" id="guestFirstName" class="guest-input" placeholder="First Name">
+                <input type="text" id="guestLastName" class="guest-input" placeholder="Last Name">
+                <input type="email" id="guestEmail" class="guest-input" placeholder="Email Address">
+                
+                <button class="btn btn-guest-submit" id="guestLoginBtn">
+                    Continue as Guest
+                </button>
+            </div>
+
+            <div class="or-separator">
+                <span>OR</span>
+            </div>
+            <button class="btn btn-google" id="googleBtn">
+                <svg class="icon" viewBox="0 0 24 24">
+                    <path fill="#4285F4"
+                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853"
+                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05"
+                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                    <path fill="#EA4335"
+                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                </svg>
+                Continue with Google
+            </button>
+
+            <div class="btn-wrapper">
+                <button class="btn btn-microsoft btn-disabled" id="microsoftBtn" disabled
+                    style="background-color: #fff; border: 1px solid #ccc; color: #aaa; cursor: not-allowed;">
+                    <svg class="icon" viewBox="0 0 24 24" fill="#aaa">
+                        <path
+                            d="M11.4 24H0V12.6h11.4V24zM24 24H12.6V12.6H24V24zM11.4 11.4H0V0h11.4v11.4zm12.6 0H12.6V0H24v11.4z" />
+                    </svg>
+                    Continue with Microsoft
+                </button>
+                <span class="tooltip-text">Coming soon. We do not support Microsoft login currently.</span>
+            </div>
+
+            <div class="loading" id="loading">Signing you in...</div>
+            <div class="error" id="error"></div>
+
+            <div class="login-footer" style="text-align: center; color: #888; font-size: 12px; margin-top: 24px;">
+                © 2025 Kotak Mahindra Prime. All rights reserved. |
+                <a href="https://www.primeloans.kotak.com/pdf/Privacy_Policy.pdf" target="blank"
+                    style="color: #888; text-decoration: underline;">Privacy Policy</a> |
+                <a href="https://www.primeloans.kotak.com/pdf/terms_and_conditions.pdf" target="blank"
+                    style="color: #888; text-decoration: underline;">Terms of Use</a>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="chatbot-screen">
+        <div class="chat-header">
+            <div class="header-left">
+                <img src="https://www.primeloans.kotak.com/corporate/images/logo.png" alt="Logo" class="header-logo"
+                    style="width:200px; height:auto;">
+            </div>
+            <h2 style="margin-left:-110px; font-size:xx-large;">🤖 Kotak Mahindra ChatBot 🤖</h2>
+            <button style=font-size:large; id="logout-button">Logout</button>
+        </div>
+
+        <div id="chat-history">
+            <div class="message bot">Hello! How can I help you today?</div>
+        </div>
+
+        <form id="chat-form">
+            <label id="file-upload-btn" for="file-upload-input" title="Upload File">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                        d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.49">
+                    </path>
+                </svg>
+            </label>
+            <input type="file" id="file-upload-input" style="display: none;">
+
+            <input type="text" id="user-query" placeholder="Type your message..." autocomplete="off">
+            <button type="submit" aria-label="Send Message">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+            </button>
+        </form>
+    </div>
+
+    <div id="preview-panel">
+        <div class="preview-header">
+            <span id="preview-title">Preview</span>
+            <button id="preview-close-btn">X</button>
+        </div>
+        <iframe id="preview-iframe" src="about:blank"></iframe>
+    </div>
+
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, signInWithPopup, GoogleAuthProvider, OAuthProvider, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+        // --- Firebase Configuration ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyBfR1357VUUdNtJIJX6lfNKLrcSi6UFBT0",
+            authDomain: "kotak-chatbot.firebaseapp.com",
+            projectId: "kotak-chatbot",
+            storageBucket: "kotak-chatbot.firebasestorage.app",
+            messagingSenderId: "652556424146",
+            appId: "1:652556424146:web:1d47e741e05da7a6ebae0b",
+            measurementId: "G-B2KLPREN5E"
+        };
+
+        // --- Initialize Firebase ---
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // --- API Endpoints ---
+        const BASE_API_URL = 'https://d14es8dx31fcqo.cloudfront.net';
+        const LOGIN_API_URL = `${BASE_API_URL}/login`;
+        const CHAT_API_URL = `${BASE_API_URL}/api/chat/ask`;
+        const UPLOAD_API_URL = `${BASE_API_URL}/upload`;
+
+        // --- Local Storage Keys ---
+        const USER_STORAGE_KEY = 'chatUser';
+        const THREAD_STORAGE_KEY = 'chatThreadId';
+
+        // --- Allowed File Extensions ---
+        const ALLOWED_EXTENSIONS = [".pdf", ".docx", ".jpeg", ".jpg", ".png"];
+
+        // --- DOM Elements ---
+        const loginScreen = document.getElementById('login-screen');
+        const chatbotScreen = document.getElementById('chatbot-screen');
+        const loadingDiv = document.getElementById('loading');
+        const errorDiv = document.getElementById('error');
+
+        const googleBtn = document.getElementById('googleBtn');
+        const microsoftBtn = document.getElementById('microsoftBtn');
+        const logoutBtn = document.getElementById('logout-button');
+
+        // --- NEW: Guest Login DOM Elements ---
+        const guestFirstName = document.getElementById('guestFirstName');
+        const guestLastName = document.getElementById('guestLastName');
+        const guestEmail = document.getElementById('guestEmail');
+        const guestLoginBtn = document.getElementById('guestLoginBtn');
+
+        const chatForm = document.getElementById('chat-form');
+        const queryInput = document.getElementById('user-query');
+        const chatHistory = document.getElementById('chat-history');
+        const submitButton = chatForm.querySelector('button[type="submit"]');
+
+        const fileUploadInput = document.getElementById('file-upload-input');
+
+        const previewPanel = document.getElementById('preview-panel');
+        const previewIframe = document.getElementById('preview-iframe');
+        const previewCloseBtn = document.getElementById('preview-close-btn');
+        const previewTitle = document.getElementById('preview-title');
+
+
+        /*
+         * --- CONFIGURE MARKDOWN, PRISM, and KATEX (Unchanged) ---
+         */
+
+        window.marked.setOptions({
+            renderer: new window.marked.Renderer(),
+            highlight: function (code, lang) {
+                if (window.Prism.languages[lang]) {
+                    return window.Prism.highlight(code, window.Prism.languages[lang], lang);
+                } else {
+                    return code;
+                }
+            },
+            pedantic: false,
+            gfm: true,
+            breaks: true,
+            sanitize: false,
+            smartypants: false,
+            xhtml: false
+        });
+
+        const katexOptions = {
+            delimiters: [
+                { left: '$$', right: '$$', display: true },
+                { left: '$', right: '$', display: false },
+                { left: '\\(', right: '\\)', display: false },
+                { left: '\\[', right: '\\]', display: true }
+            ],
+            throwOnError: false
+        };
+
+        // --- Helper Functions (Unchanged) ---
+
+        /** Generates a simple v4 UUID */
+        function generateUUID() {
+            if (crypto && crypto.randomUUID) {
+                return crypto.randomUUID();
+            }
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        function renderMarkdown(text) {
+            return window.marked.parse(text);
+        }
+
+        function postProcessMessage(element) {
+            try {
+                if (window.renderMathInElement) {
+                    window.renderMathInElement(element, katexOptions);
+                }
+                if (window.Prism) {
+                    window.Prism.highlightAllUnder(element);
+                }
+            } catch (e) {
+                console.error("Error during post-processing (KaTeX/Prism):", e);
+            }
+        }
+
+        function showLoading() {
+            loadingDiv.style.display = 'block';
+            errorDiv.style.display = 'none';
+        }
+
+        function hideLoading() {
+            loadingDiv.style.display = 'none';
+        }
+
+        function showError(message) {
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            hideLoading();
+        }
+
+        function showLoginScreen() {
+            loginScreen.style.display = 'flex';
+            chatbotScreen.style.display = 'none';
+            chatHistory.innerHTML = '<div class="message bot">Hello! How can I help you today?</div>';
+            closePreviewPanel();
+            
+            // Reset Guest inputs
+            guestFirstName.value = '';
+            guestLastName.value = '';
+            guestEmail.value = '';
+        }
+
+        function showChatbotScreen() {
+            loginScreen.style.display = 'none';
+            chatbotScreen.style.display = 'flex';
+            hideLoading();
+        }
+
+        function displayMessage(message, sender, elId = null) {
+            const existingEl = elId ? document.getElementById(elId) : null;
+            const messageEl = existingEl || document.createElement('div');
+
+            if (!existingEl) {
+                messageEl.classList.add('message', sender);
+                chatHistory.appendChild(messageEl);
+            }
+
+            if (sender === 'bot') {
+                messageEl.innerHTML = renderMarkdown(message);
+                messageEl.classList.remove('loading');
+                postProcessMessage(messageEl);
+            } else {
+                messageEl.textContent = message;
+            }
+
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        function showBotLoading() {
+            const loaderId = `loader-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            const messageEl = document.createElement('div');
+            messageEl.classList.add('message', 'bot', 'loading');
+            messageEl.id = loaderId;
+            messageEl.innerHTML = `
+                <div class="loading-dots">
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                </div>
+            `;
+            chatHistory.appendChild(messageEl);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+            return loaderId;
+        }
+
+        function openPreviewPanel(url) {
+            previewTitle.textContent = url;
+            previewIframe.src = url;
+            previewPanel.classList.add('open');
+        }
+
+        function closePreviewPanel() {
+            previewPanel.classList.remove('open');
+            previewIframe.src = 'about:blank';
+            previewTitle.textContent = 'Preview';
+        }
+
+        // --- Core Logic ---
+
+        // Handler for Google Login (Unchanged)
+        async function handleSuccessfulLogin(firebaseUser, providerName) {
+            showLoading();
+            try {
+                const displayName = firebaseUser.displayName || '';
+                const nameParts = displayName.split(' ');
+                const firstName = nameParts[0] || '';
+                const lastName = nameParts.slice(1).join(' ') || '';
+
+                const loginPayload = {
+                    first_name: firstName,
+                    last_name: lastName,
+                    email: firebaseUser.email,
+                    provider: providerName
+                };
+
+                const response = await fetch(LOGIN_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(loginPayload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+                }
+
+                if (response.status === 200) {
+                    const userData = await response.json();
+                    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userData));
+
+                    const newThreadId = generateUUID();
+                    localStorage.setItem(THREAD_STORAGE_KEY, newThreadId);
+
+                    showChatbotScreen();
+                } else {
+                    throw new Error(`Login API did not return 200 OK. Status: ${response.status}`);
+                }
+
+            } catch (error) {
+                console.error('Login process failed:', error);
+                showError(`Login failed: ${error.message}. Please try again.`);
+                await signOut(auth);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // --- NEW: Handler for Guest Login ---
+        async function handleGuestSubmit() {
+            const firstName = guestFirstName.value.trim();
+            const lastName = guestLastName.value.trim();
+            const email = guestEmail.value.trim();
+
+            if (!firstName || !lastName || !email) {
+                showError("Please fill in all fields (First Name, Last Name, and Email) to continue as guest.");
+                return;
+            }
+
+            showLoading();
+
+            try {
+                const loginPayload = {
+                    first_name: firstName,
+                    last_name: lastName,
+                    email: email,
+                    provider: 'guest'
+                };
+
+                const response = await fetch(LOGIN_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(loginPayload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+                }
+
+                if (response.status === 200) {
+                    const userData = await response.json();
+                    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userData));
+
+                    const newThreadId = generateUUID();
+                    localStorage.setItem(THREAD_STORAGE_KEY, newThreadId);
+
+                    showChatbotScreen();
+                } else {
+                    throw new Error(`Login API did not return 200 OK. Status: ${response.status}`);
+                }
+            } catch (error) {
+                console.error('Guest Login process failed:', error);
+                showError(`Guest Login failed: ${error.message}. Please try again.`);
+            } finally {
+                hideLoading();
+            }
+        }
+
+
+        async function handleChatSubmit(event) {
+            event.preventDefault();
+            const query = queryInput.value.trim();
+            if (!query) return;
+
+            queryInput.disabled = true;
+            submitButton.disabled = true;
+
+            displayMessage(query, 'user');
+            queryInput.value = '';
+
+            const loaderId = showBotLoading();
+            chatHistory.offsetHeight;
+
+            try {
+                const userData = JSON.parse(localStorage.getItem(USER_STORAGE_KEY));
+                const threadId = localStorage.getItem(THREAD_STORAGE_KEY);
+
+                if (!userData || !threadId) {
+                    throw new Error('User data or session not found. Please log in again.');
+                }
+
+                const queryId = generateUUID();
+
+                const chatPayload = {
+                    ...userData,
+                    user_query: query,
+                    thread_id: threadId,
+                    query_id: queryId
+                };
+
+                const response = await fetch(CHAT_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(chatPayload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Chat API Error: ${response.status} ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                displayMessage(data.response, 'bot', loaderId);
+
+            } catch (error) {
+                console.error('Chat submit error:', error);
+                displayMessage(`Error: ${error.message}`, 'bot', loaderId);
+
+                if (error.message.includes('User data')) {
+                    handleLogout();
+                }
+            } finally {
+                queryInput.disabled = false;
+                submitButton.disabled = false;
+                queryInput.focus();
+            }
+        }
+
+
+        async function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                return; // User cancelled
+            }
+
+            const input = event.target;
+
+            // 1. Validate file extension
+            const fileName = file.name;
+            const fileExt = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
+
+            if (!ALLOWED_EXTENSIONS.includes(fileExt)) {
+                alert(`Invalid file type. Allowed types are: ${ALLOWED_EXTENSIONS.join(', ')}`);
+                input.value = null; // Reset input
+                return;
+            }
+
+            // 2. Show user message and loading indicator
+            displayMessage(`Uploading ${fileName}...`, 'user');
+            const loaderId = showBotLoading();
+
+            try {
+                const userData = JSON.parse(localStorage.getItem(USER_STORAGE_KEY));
+                const threadId = localStorage.getItem(THREAD_STORAGE_KEY);
+
+                if (!userData || !threadId) {
+                    throw new Error('User data or session not found. Please log in again.');
+                }
+
+                const queryId = generateUUID();
+
+                const payload = {
+                    ...userData, 
+                    user_query: "null", 
+                    thread_id: threadId,
+                    query_id: queryId
+                };
+
+                // 3. Prepare FormData
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('payload', JSON.stringify(payload));
+
+                // 4. Send API Request
+                const response = await fetch(UPLOAD_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ detail: 'Unknown server error' }));
+                    throw new Error(`Upload failed: ${response.status} ${response.statusText}. Server says: ${errorData.detail || 'No details'}`);
+                }
+
+                const data = await response.json();
+
+                // 5. Show success message in chat
+                const botMessage = `File \`${data.filename}\` uploaded successfully. \n\n[Click here to view or download](${data.file_url})`;
+                displayMessage(botMessage, 'bot', loaderId);
+
+            } catch (error) {
+                console.error('File upload error:', error);
+                displayMessage(`Error uploading file "${fileName}":\n${error.message}`, 'bot', loaderId);
+
+                if (error.message.includes('User data')) {
+                    handleLogout();
+                }
+            } finally {
+                input.value = null; // Clear input
+            }
+        }
+
+
+        function handleLogout() {
+            localStorage.removeItem(USER_STORAGE_KEY);
+            localStorage.removeItem(THREAD_STORAGE_KEY);
+            signOut(auth).catch(error => console.error('Firebase signout error:', error));
+            showLoginScreen();
+        }
+
+        function initializeAppOnLoad() {
+            const userData = localStorage.getItem(USER_STORAGE_KEY);
+            const threadId = localStorage.getItem(THREAD_STORAGE_KEY);
+
+            if (userData && threadId) {
+                showChatbotScreen();
+            } else {
+                showLoginScreen();
+            }
+        }
+
+        // --- Event Listeners ---
+
+        document.addEventListener('DOMContentLoaded', initializeAppOnLoad);
+
+        googleBtn.addEventListener('click', async () => {
+            const provider = new GoogleAuthProvider();
+            try {
+                const result = await signInWithPopup(auth, provider);
+                await handleSuccessfulLogin(result.user, 'google');
+            } catch (error) {
+                console.error('Google sign in error:', error);
+                showError('Failed to sign in with Google. Please try again.');
+            }
+        });
+        
+        // --- NEW: Guest Login Listener ---
+        guestLoginBtn.addEventListener('click', handleGuestSubmit);
+
+        chatForm.addEventListener('submit', handleChatSubmit);
+        logoutBtn.addEventListener('click', handleLogout);
+        previewCloseBtn.addEventListener('click', closePreviewPanel);
+
+        chatHistory.addEventListener('click', (e) => {
+            const link = e.target.closest('a');
+            if (link && link.href) {
+                e.preventDefault();
+                const url = link.getAttribute('href');
+                if (url.startsWith('#')) return;
+                openPreviewPanel(url);
+            }
+        });
+
+        // --- Listener for File Input (Unchanged) ---
+        fileUploadInput.addEventListener('change', handleFileUpload);
+
+    </script>
+</body>
+
+</html>
