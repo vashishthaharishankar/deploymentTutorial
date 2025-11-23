@@ -3,6 +3,9 @@ import faiss
 from typing import List, Tuple
 from dotenv import load_dotenv
 
+import requests
+from bs4 import BeautifulSoup
+from urllib.parse import urljoin, urlparse
 
 # LangChain Imports
 from langchain.chat_models import init_chat_model
@@ -235,12 +238,32 @@ def get_final_agent_response(agent, query: str) -> str:
     return final_answer
 
 
+def extract_internal_links(url):
+    domain = urlparse(url).netloc
+
+    response = requests.get(url, timeout=5)
+    soup = BeautifulSoup(response.text, "html.parser")
+
+    links = set()
+
+    for a in soup.find_all("a", href=True):
+        full_url = urljoin(url, a["href"])
+        parsed = urlparse(full_url)
+
+        # keep only links under same domain
+        if parsed.netloc == domain:
+            clean = full_url.split("#")[0]  # remove #fragment
+            links.add(clean)
+
+    return links
+
+
 # --- Main Execution Flow ---
 
 
 def main_execution_flow(
-    query: str,
-    urls: List[str] = ["www.example.com"],
+    query: str = "Hello, are you ready?",
+    url: str = "https://www.primeloans.kotak.com/",
     db_path: str = "faiss_index",
     force_rebuild_db: bool = False,
 ):
@@ -255,8 +278,9 @@ def main_execution_flow(
     if not force_rebuild_db and os.path.exists(db_path):
         vector_store = load_vector_db(embeddings, db_path)
     else:
+        urls_list = extract_internal_links(url)
         # Load and Chunk Documents
-        docs = load_documents_from_urls(urls)
+        docs = load_documents_from_urls(urls_list)
         all_splits = chunk_documents(docs)
 
         # Create and Save Vector DB
@@ -270,11 +294,11 @@ def main_execution_flow(
     #     "Use the tool to retrieve relevant information and then answer the user queries concisely."
     # )
     prompt = (
-        "You are Kotak Prime Bot, Who has expertise in answering user queries related to the Kotak Prime Loan and its data." \
+        "You are Prime Bot, Who has expertise in answering user queries related to the provided website in vector DB and its data." \
         "Your task is to answer user queries based on a tool you have access to, basically to retreive context related to thet user queries." \
         " You MUST adhere to the following rules for EVERY response:\n" \
         "1.  **No Memory:** You have no memory of previous conversation. Treat every user query as a new, standalone request.\n" \
-        "2.  **Tool First:** You have a tool that retrieves context from financial documents of Kotak Prime Loan website. You MUST use this tool to find information relevant to the user's query.\n" \
+        "2.  **Tool First:** You have a tool that retrieves context from website content of provided website in vector db. You MUST use this tool to find information relevant to the user's query.\n" \
         "3.  **NO CLARIFICATIONS:** You are strictly forbidden from asking the user for clarification, more details, or context (e.g., Which year?). If a query is ambiguous, use your tool to find the most relevant or most recent information and present that.\n" \
         "4.  **MANDATORY MARKDOWN:** Your *entire* response must be formatted in valid Markdown. Use headings, subheadings, bullet points, tables, blockquotes, or code blocks as necessary to ensure the information is clear, organized, and scannable. Even a simple 'not found' message must be valid Markdown (e.g., `## Information Not Found`).\n" \
         "If user query is very simple, which do not need to retreive document context, then gracefully reply to those queries. But if you do not find context in the retrieved context, then gracefully responds, and ask user to detail the query." \
