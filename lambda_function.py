@@ -48,12 +48,17 @@ class QueryChatModel(BaseModel):
     query_id: str | None
 
 
+class RebuildRAGModel(BaseModel):
+    url: str | None = "https://www.primeloans.kotak.com/"
+    user_query: str | None = "Hello, are you ready?"
+
+
 # --------- CORS HEADERS (GLOBAL FIX) ----------
 CORS_HEADERS = {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
-    "Access-Control-Allow-Headers": "*",     # IMPORTANT FIX
+    "Access-Control-Allow-Headers": "*",
     "Access-Control-Max-Age": "86400"
 }
 
@@ -277,6 +282,19 @@ def lambda_handler(event, context):
                         "file_url": url,
                     }
                 ),
+            }
+
+        # ---- RETRAIN RAG DATABASE CHAT ----
+        if path == "/api/create-rag/rebuild" and http_method == "POST":
+            data = RebuildRAGModel(**body)
+
+            result = main_execution_flow(query=data.user_query, url=data.url, force_rebuild_db=True)
+            response = {"response": result}
+
+            return {
+                "statusCode": 200,
+                "headers": CORS_HEADERS,
+                "body": json.dumps(response),
             }
 
         # ---- DEFAULT ----
