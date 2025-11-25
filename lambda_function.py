@@ -42,6 +42,7 @@ class UserLoginData(BaseModel):
     response: str | None = None
     provider: str | None = None
     s3_file_url: str | None = None
+    salesforce_lead_id: str | None = None
 
 
 class QueryChatModel(BaseModel):
@@ -52,6 +53,7 @@ class QueryChatModel(BaseModel):
     user_query: str | None
     thread_id: str | None
     query_id: str | None
+    salesforce_lead_id: str | None = None
 
 
 class RebuildRAGModel(BaseModel):
@@ -180,7 +182,9 @@ def lambda_handler(event, context):
                 print("Salesforce error:", e)
 
             try:
-                handle_user_login(data)
+                output = handle_user_login(data)
+                if not data["salesforce_lead_id"]:
+                    data["salesforce_lead_id"] = output["salesforce_lead_id"]
             except Exception as e:
                 print("DB login error:", e)
 
@@ -266,6 +270,7 @@ def lambda_handler(event, context):
                 "email": payload.email,
                 "provider": payload.provider,
                 "s3_file_url": url,
+                "salesforce_lead_id": payload.salesforce_lead_id,
             }
 
             try:
@@ -279,7 +284,7 @@ def lambda_handler(event, context):
                     {
                         "email": payload.email,
                         "s3_uri": url,
-                        "user_query": None,
+                        "user_query": data["salesforce_lead_id"],
                         "bot_response": None,
                         "thread_id": payload.thread_id,
                         "query_id": payload.query_id,
