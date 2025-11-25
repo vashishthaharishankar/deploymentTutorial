@@ -5,7 +5,10 @@ import io
 from pydantic import BaseModel, ValidationError
 from dotenv import load_dotenv
 from rag_pipeline import main_execution_flow
-from salesforce_client import create_salesforce_lead
+
+# from salesforce_client import create_salesforce_lead
+from new_salesforce_client import create_salesforce_lead
+
 import boto3
 from botocore.exceptions import ClientError
 from database.update_users import handle_user_login
@@ -32,10 +35,13 @@ except Exception as e:
 
 # --------- MODELS ---------
 class UserLoginData(BaseModel):
-    first_name: str | None
+    first_name: str | None = None
     last_name: str | None = None
-    email: str | None
-    provider: str | None
+    email: str | None = None
+    query: str | None = None
+    response: str | None = None
+    provider: str | None = None
+    s3_file_url: str | None = None
 
 
 class QueryChatModel(BaseModel):
@@ -59,17 +65,17 @@ CORS_HEADERS = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
     "Access-Control-Allow-Headers": "*",
-    "Access-Control-Max-Age": "86400"
+    "Access-Control-Max-Age": "86400",
 }
 
 
 # --------- MULTIPART PARSER ----------
 def parse_multipart_form_data(body: bytes, content_type: str):
     boundary = None
-    for part in content_type.split(';'):
+    for part in content_type.split(";"):
         part = part.strip()
-        if part.startswith('boundary='):
-            boundary = part.split('=', 1)[1].strip('"')
+        if part.startswith("boundary="):
+            boundary = part.split("=", 1)[1].strip('"')
             break
 
     if not boundary:
@@ -121,7 +127,6 @@ def parse_multipart_form_data(body: bytes, content_type: str):
 
 # --------- MAIN HANDLER ----------
 def lambda_handler(event, context):
-
     # --- FIXED GLOBAL OPTIONS HANDLER ---
     method = (
         event.get("httpMethod")
@@ -142,9 +147,7 @@ def lambda_handler(event, context):
 
         headers_dict = event.get("headers") or {}
         content_type = (
-            headers_dict.get("content-type")
-            or headers_dict.get("Content-Type")
-            or ""
+            headers_dict.get("content-type") or headers_dict.get("Content-Type") or ""
         )
 
         body_str = event.get("body")
@@ -216,7 +219,6 @@ def lambda_handler(event, context):
 
         # ---- FILE UPLOAD ----
         if path == "/upload" and http_method == "POST":
-
             if not s3_client:
                 return {
                     "statusCode": 503,
@@ -258,17 +260,33 @@ def lambda_handler(event, context):
             )
 
             payload = QueryChatModel(**json.loads(payload_str))
+            lead_data = {
+                "first_name": payload.first_name,
+                "last_name": payload.last_name,
+                "email": payload.email,
+                "provider": payload.provider,
+                "s3_file_url": url,
+            }
 
-            add_user_chat(
-                {
-                    "email": payload.email,
-                    "s3_uri": url,
-                    "user_query": None,
-                    "bot_response": None,
-                    "thread_id": payload.thread_id,
-                    "query_id": payload.query_id,
-                }
-            )
+            try:
+                lead = create_salesforce_lead(lead_data)
+                data["salesforce_lead_id"] = lead["salesforce_lead_id"]
+            except Exception as e:
+                print("Salesforce error:", e)
+
+            try:
+                add_user_chat(
+                    {
+                        "email": payload.email,
+                        "s3_uri": url,
+                        "user_query": None,
+                        "bot_response": None,
+                        "thread_id": payload.thread_id,
+                        "query_id": payload.query_id,
+                    }
+                )
+            except Exception as e:
+                print("DB login error:", e)
 
             return {
                 "statusCode": 200,
@@ -288,7 +306,9 @@ def lambda_handler(event, context):
         if path == "/api/create-rag/rebuild" and http_method == "POST":
             data = RebuildRAGModel(**body)
 
-            result = main_execution_flow(query=data.user_query, url=data.url, force_rebuild_db=True)
+            result = main_execution_flow(
+                query=data.user_query, url=data.url, force_rebuild_db=True
+            )
             response = {"response": result}
 
             return {

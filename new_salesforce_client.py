@@ -9,15 +9,6 @@ from dotenv import load_dotenv
 # --- Load environment variables ---
 load_dotenv()
 
-# --- Pydantic Model ---
-class UserLoginData(BaseModel):
-    first_name: str
-    last_name: str | None = None
-    email: str
-    query: str | None = None
-    response: str | None = None
-    provider: str
-    s3_file_url: str | None = None # Added this field
 
 # --- Salesforce Connection ---
 def get_salesforce_client():
@@ -33,30 +24,32 @@ def get_salesforce_client():
         print(f"Failed to connect to Salesforce: {e}")
         return None
 
+
 sf = get_salesforce_client()
+
 
 # --- Helper: Download and Encode File ---
 def download_and_encode_s3_file(url: str):
-    """
-    Downloads file from S3 (public or presigned URL) and base64 encodes it.
-    """
     try:
         response = requests.get(url)
         response.raise_for_status()
-        
-        # Extract filename from URL
+
         parsed_url = urlparse(url)
         filename = os.path.basename(parsed_url.path)
-        if not filename:
-            filename = "attached_file.pdf" # Fallback
+        # Handle URL encoded filenames (e.g. %20 for spaces)
+        from urllib.parse import unquote
 
-        # Encode content to Base64 (Required by Salesforce API)
+        filename = unquote(filename)
+
+        if not filename:
+            filename = "attached_file.pdf"
+
         encoded_string = base64.b64encode(response.content).decode("utf-8")
-        
         return filename, encoded_string
     except Exception as e:
         print(f"Error downloading S3 file: {e}")
         return None, None
+
 
 # --- Main Function ---
 def create_salesforce_lead(user: dict) -> dict:
@@ -70,7 +63,7 @@ def create_salesforce_lead(user: dict) -> dict:
         "LastName": lead_last_name,
         "Email": user.get("email"),
         "Company": f"{user.get('provider', 'Unknown')} Login",
-        "LeadSource": "Web"
+        "LeadSource": "Web",
     }
 
     try:
@@ -82,35 +75,57 @@ def create_salesforce_lead(user: dict) -> dict:
             raise RuntimeError(f"Salesforce creation failed: {result.get('errors')}")
 
         print(f"Lead created successfully: {lead_id}")
-        
+
         attachment_status = "No file provided"
 
-        # 2. Handle File Attachment if URL exists
+        # 2. Handle File Attachment
         s3_url = user.get("s3_file_url")
         if s3_url:
             filename, b64_data = download_and_encode_s3_file(s3_url)
-            
+
             if b64_data:
-                # Create ContentVersion (The File)
-                # Setting FirstPublishLocationId links it directly to the Lead immediately
+                # Step A: Create ContentVersion (The actual file)
+                # Note: We do NOT set FirstPublishLocationId here to avoid permission issues.
+                # We upload it as a private file first.
                 content_version = {
                     "Title": filename,
                     "PathOnClient": filename,
                     "VersionData": b64_data,
-                    "FirstPublishLocationId": lead_id 
+                    "IsMajorVersion": True,
                 }
-                
+
                 cv_result = sf.ContentVersion.create(content_version)
+                cv_id = cv_result.get("id")
+
                 if cv_result.get("success"):
-                    attachment_status = "File attached successfully"
-                    print(f"File '{filename}' attached to Lead {lead_id}")
+                    # Step B: Query the ContentDocumentId
+                    # When a ContentVersion is created, Salesforce automatically creates a ContentDocument container
+                    cv_data = sf.ContentVersion.get(cv_id)
+                    content_document_id = cv_data.get("ContentDocumentId")
+
+                    # Step C: Create ContentDocumentLink (The Bridge)
+                    # This explicitly links the File (ContentDocument) to the Lead (LinkedEntity)
+                    cd_link = {
+                        "ContentDocumentId": content_document_id,
+                        "LinkedEntityId": lead_id,
+                        "ShareType": "V",  # V = Viewer, I = Inferred, C = Collaborator
+                        "Visibility": "AllUsers",  # Ensures internal users can see it
+                    }
+
+                    link_result = sf.ContentDocumentLink.create(cd_link)
+
+                    if link_result.get("success"):
+                        attachment_status = "File attached and linked successfully"
+                        print(f"File '{filename}' linked to Lead {lead_id}")
+                    else:
+                        attachment_status = "File uploaded but linking failed"
                 else:
                     attachment_status = "File upload failed"
 
         return {
             "message": "Lead created successfully",
             "salesforce_lead_id": lead_id,
-            "file_status": attachment_status
+            "file_status": attachment_status,
         }
 
     except SalesforceGeneralError as e:
@@ -118,17 +133,18 @@ def create_salesforce_lead(user: dict) -> dict:
     except Exception as e:
         raise RuntimeError(f"Unexpected error: {str(e)}") from e
 
+
 # --- Execution ---
 if __name__ == "__main__":
-    # Example Data
     data = {
-        "first_name": "shankar",
-        "last_name": "Doe",
-        "email": "hari.doe1@example.com",
-        "provider": "google",
-        "s3_file_url": "https://hiara-dev.s3.ap-south-1.amazonaws.com/KOTAK-MAHINDRA/DOLFY+GUPTA+UPDATED+RESUME+GEN-AI+DEVELOPER++DATA+SCIENTIST.pdf" 
+        "first_name": "shyam",
+        "last_name": "mango",
+        "email": "hari.doe121@example.com",
+        "provider": "guest",
+        # Ensure the URL is valid and accessible
+        "s3_file_url": "https://hiara-dev.s3.ap-south-1.amazonaws.com/KOTAK-MAHINDRA/DOLFY+GUPTA+UPDATED+RESUME+GEN-AI+DEVELOPER++DATA+SCIENTIST.pdf",
     }
-    
+
     try:
         result = create_salesforce_lead(data)
         print(result)
