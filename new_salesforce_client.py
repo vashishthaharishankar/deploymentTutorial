@@ -67,14 +67,19 @@ def create_salesforce_lead(user: dict) -> dict:
     }
 
     try:
-        # 1. Create the Lead
-        result = sf.Lead.create(lead_data)
-        lead_id = result.get("id")
+        if not user.get("salesforce_lead_id", None):
+            # 1. Create the Lead
+            result = sf.Lead.create(lead_data)
+            lead_id = result.get("id")
 
-        if not lead_id:
-            raise RuntimeError(f"Salesforce creation failed: {result.get('errors')}")
+            if not lead_id:
+                raise RuntimeError(
+                    f"Salesforce creation failed: {result.get('errors')}"
+                )
 
-        print(f"Lead created successfully: {lead_id}")
+            print(f"Lead created successfully: {lead_id}")
+        else:
+            lead_id = user.get("salesforce_lead_id", "00Qf6000009F3YHEA0")
 
         attachment_status = "No file provided"
 
