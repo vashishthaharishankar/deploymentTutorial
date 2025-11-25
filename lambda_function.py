@@ -275,7 +275,7 @@ def lambda_handler(event, context):
 
             try:
                 lead = create_salesforce_lead(lead_data)
-                data["salesforce_lead_id"] = lead["salesforce_lead_id"]
+                # data["salesforce_lead_id"] = lead["salesforce_lead_id"]
             except Exception as e:
                 print("Salesforce error:", e)
 
@@ -284,7 +284,7 @@ def lambda_handler(event, context):
                     {
                         "email": payload.email,
                         "s3_uri": url,
-                        "user_query": data["salesforce_lead_id"],
+                        "user_query": lead["salesforce_lead_id"],
                         "bot_response": None,
                         "thread_id": payload.thread_id,
                         "query_id": payload.query_id,
